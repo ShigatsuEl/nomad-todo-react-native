@@ -12,9 +12,20 @@ import { theme } from "./color";
 export default function App() {
   const [mode, setMode] = useState("work");
   const [text, setText] = useState("");
+  const [toDos, setToDos] = useState({});
   const setModeTravel = () => setMode("travel");
   const setModeWork = () => setMode("work");
   const onChangeText = (payload) => setText(payload);
+  const addToDo = () => {
+    if (text === "") {
+      return;
+    }
+    const newToDos = Object.assign({}, toDos, {
+      [Date.now()]: { text, mode },
+    });
+    setToDos(newToDos);
+    setText("");
+  };
 
   return (
     <View style={styles.container}>
@@ -42,7 +53,9 @@ export default function App() {
         </TouchableOpacity>
       </View>
       <TextInput
+        onSubmitEditing={addToDo}
         onChangeText={onChangeText}
+        returnKeyType="done"
         value={text}
         placeholder={
           mode === "work" ? "Add a To Do" : "Where do you want to go?"
