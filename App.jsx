@@ -14,6 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { theme } from "./color";
 
 const STORAGE_KEY = "@toDos";
+const MODE_KEY = "@mode";
 
 export default function App() {
   const [mode, setMode] = useState("work");
@@ -21,12 +22,34 @@ export default function App() {
   const [toDos, setToDos] = useState({});
 
   useEffect(() => {
+    getMode();
     getToDos();
   }, []);
 
-  const setModeTravel = () => setMode("travel");
-  const setModeWork = () => setMode("work");
+  const setModeTravel = () => {
+    setMode("travel");
+    saveMode("travel");
+  };
+  const setModeWork = () => {
+    setMode("work");
+    saveMode("work");
+  };
   const onChangeText = (payload) => setText(payload);
+  const saveMode = async (mode) => {
+    try {
+      await AsyncStorage.setItem(MODE_KEY, mode);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const getMode = async () => {
+    try {
+      const mode = await AsyncStorage.getItem(MODE_KEY);
+      setMode(mode);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const saveToDos = async (toSave) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
