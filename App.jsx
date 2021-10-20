@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -8,16 +8,39 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { theme } from "./color";
+
+const STORAGE_KEY = "@toDos";
 
 export default function App() {
   const [mode, setMode] = useState("work");
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
+
+  useEffect(() => {
+    getToDos();
+  }, []);
+
   const setModeTravel = () => setMode("travel");
   const setModeWork = () => setMode("work");
   const onChangeText = (payload) => setText(payload);
-  const addToDo = () => {
+  const saveToDos = async (toSave) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const getToDos = async () => {
+    const toDosJSON = await AsyncStorage.getItem(STORAGE_KEY);
+    if (!toDosJSON) {
+      setToDos({});
+    } else {
+      setToDos(JSON.parse(toDosJSON));
+    }
+  };
+  const addToDo = async () => {
     if (text === "") {
       return;
     }
@@ -25,6 +48,7 @@ export default function App() {
       [Date.now()]: { text, mode },
     });
     setToDos(newToDos);
+    await saveToDos(newToDos);
     setText("");
   };
 
@@ -64,11 +88,13 @@ export default function App() {
         style={styles.input}
       />
       <ScrollView>
-        {Object.keys(toDos).map((key) => (
-          <View style={styles.toDo} key={key}>
-            <Text style={styles.toDoText}>{toDos[key].text}</Text>
-          </View>
-        ))}
+        {Object.keys(toDos).map((key) =>
+          toDos[key].mode === mode ? (
+            <View style={styles.toDo} key={key}>
+              <Text style={styles.toDoText}>{toDos[key].text}</Text>
+            </View>
+          ) : null
+        )}
       </ScrollView>
     </View>
   );
