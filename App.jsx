@@ -1,6 +1,8 @@
+import { Fontisto } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -51,6 +53,21 @@ export default function App() {
     await saveToDos(newToDos);
     setText("");
   };
+  const deleteToDo = (key) => {
+    Alert.alert("Delete To Do", "Are you sure?", [
+      { text: "cancel" },
+      {
+        text: "delete",
+        style: "destructive",
+        onPress: async () => {
+          const newToDos = Object.assign({}, toDos);
+          delete newToDos[key];
+          setToDos(newToDos);
+          await saveToDos(newToDos);
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
@@ -92,6 +109,9 @@ export default function App() {
           toDos[key].mode === mode ? (
             <View style={styles.toDo} key={key}>
               <Text style={styles.toDoText}>{toDos[key].text}</Text>
+              <TouchableOpacity onPress={() => deleteToDo(key)}>
+                <Fontisto name="trash" size={18} color={theme.gray} />
+              </TouchableOpacity>
             </View>
           ) : null
         )}
@@ -124,11 +144,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   toDo: {
-    backgroundColor: theme.toDoBackground,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10,
     paddingVertical: 20,
     paddingHorizontal: 20,
     borderRadius: 15,
+    backgroundColor: theme.toDoBackground,
   },
   toDoText: {
     color: "white",
