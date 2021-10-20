@@ -1,4 +1,4 @@
-import { Fontisto } from "@expo/vector-icons";
+import { Fontisto, Feather } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
@@ -20,6 +20,8 @@ export default function App() {
   const [mode, setMode] = useState("work");
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
+  const [edit, setEdit] = useState("");
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     getMode();
@@ -35,6 +37,14 @@ export default function App() {
     saveMode("work");
   };
   const onChangeText = (payload) => setText(payload);
+  const onChangeEditText = (payload) => setEditText(payload);
+  const onEdit = (key) => {
+    if (key === edit) {
+      setEdit("");
+    } else {
+      setEdit(key);
+    }
+  };
   const saveMode = async (mode) => {
     try {
       await AsyncStorage.setItem(MODE_KEY, mode);
@@ -75,6 +85,17 @@ export default function App() {
     setToDos(newToDos);
     await saveToDos(newToDos);
     setText("");
+  };
+  const editToDo = async (key) => {
+    if (editText === "") {
+      return;
+    }
+    const newToDos = Object.assign({}, toDos);
+    newToDos[key].text = editText;
+    setEdit("");
+    setToDos(newToDos);
+    await saveToDos(newToDos);
+    setEditText("");
   };
   const deleteToDo = (key) => {
     Alert.alert("Delete To Do", "Are you sure?", [
@@ -137,30 +158,42 @@ export default function App() {
         {Object.keys(toDos).map((key) =>
           toDos[key].mode === mode ? (
             <View style={styles.toDo} key={key}>
-              <Text
-                style={
-                  toDos[key].check
-                    ? { ...styles.toDoText, ...styles.checkToDoText }
-                    : styles.toDoText
-                }
-              >
-                {toDos[key].text}
-              </Text>
+              {key === edit ? (
+                <TextInput
+                  onSubmitEditing={() => editToDo(key)}
+                  onChangeText={onChangeEditText}
+                  returnKeyType="done"
+                  value={editText}
+                  defaultValue={toDos[key].text}
+                  style={styles.input}
+                />
+              ) : (
+                <Text
+                  style={
+                    toDos[key].check
+                      ? { ...styles.toDoText, ...styles.checkToDoText }
+                      : styles.toDoText
+                  }
+                >
+                  {toDos[key].text}
+                </Text>
+              )}
               <View style={styles.toDoIcons}>
-                {toDos[key].check ? (
-                  <Fontisto
-                    name="check"
-                    size={18}
-                    color="red"
-                    style={{ marginRight: 10, opacity: 0.2 }}
-                  />
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => checkToDo(key)}
-                    style={{ marginRight: 10 }}
-                  >
-                    <Fontisto name="check" size={18} color="red" />
-                  </TouchableOpacity>
+                {!toDos[key].check && (
+                  <>
+                    <TouchableOpacity
+                      onPress={() => checkToDo(key)}
+                      style={{ marginRight: 10 }}
+                    >
+                      <Fontisto name="check" size={18} color="red" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => onEdit(key)}
+                      style={{ marginRight: 10 }}
+                    >
+                      <Feather name="edit" size={24} color="green" />
+                    </TouchableOpacity>
+                  </>
                 )}
                 <TouchableOpacity onPress={() => deleteToDo(key)}>
                   <Fontisto name="trash" size={18} color={theme.gray} />
