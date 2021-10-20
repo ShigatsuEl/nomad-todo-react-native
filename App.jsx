@@ -70,7 +70,7 @@ export default function App() {
       return;
     }
     const newToDos = Object.assign({}, toDos, {
-      [Date.now()]: { text, mode },
+      [Date.now()]: { text, mode, check: false },
     });
     setToDos(newToDos);
     await saveToDos(newToDos);
@@ -90,6 +90,12 @@ export default function App() {
         },
       },
     ]);
+  };
+  const checkToDo = async (key) => {
+    const newToDos = Object.assign({}, toDos);
+    newToDos[key].check = true;
+    setToDos(newToDos);
+    saveToDos(newToDos);
   };
 
   return (
@@ -131,10 +137,35 @@ export default function App() {
         {Object.keys(toDos).map((key) =>
           toDos[key].mode === mode ? (
             <View style={styles.toDo} key={key}>
-              <Text style={styles.toDoText}>{toDos[key].text}</Text>
-              <TouchableOpacity onPress={() => deleteToDo(key)}>
-                <Fontisto name="trash" size={18} color={theme.gray} />
-              </TouchableOpacity>
+              <Text
+                style={
+                  toDos[key].check
+                    ? { ...styles.toDoText, ...styles.checkToDoText }
+                    : styles.toDoText
+                }
+              >
+                {toDos[key].text}
+              </Text>
+              <View style={styles.toDoIcons}>
+                {toDos[key].check ? (
+                  <Fontisto
+                    name="check"
+                    size={18}
+                    color="red"
+                    style={{ marginRight: 10, opacity: 0.2 }}
+                  />
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => checkToDo(key)}
+                    style={{ marginRight: 10 }}
+                  >
+                    <Fontisto name="check" size={18} color="red" />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => deleteToDo(key)}>
+                  <Fontisto name="trash" size={18} color={theme.gray} />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : null
         )}
@@ -176,9 +207,18 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: theme.toDoBackground,
   },
+  toDoIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   toDoText: {
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+  checkToDoText: {
+    textDecorationLine: "line-through",
+    textDecorationStyle: "solid",
+    opacity: 0.5,
   },
 });
